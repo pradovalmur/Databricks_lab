@@ -6,8 +6,8 @@ from pathlib import Path
 from pyspark.sql.functions import (
     current_timestamp,
     current_date,
-    input_file_name,
-    lit
+    lit,
+    col
 )
 
 # COMMAND ----------
@@ -68,7 +68,7 @@ display(df_raw.limit(10))
 df_bronze = (
     df_raw
     .withColumn("_source_name", lit(source_name))
-    .withColumn("_source_file", input_file_name())
+    .withColumn("_source_file", col("_metadata.file_path"))
     .withColumn("_raw_file_name", lit(file_name))
     .withColumn("_ingestion_ts", current_timestamp())
     .withColumn("_ingestion_date", current_date())
