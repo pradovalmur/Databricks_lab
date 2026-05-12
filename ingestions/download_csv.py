@@ -1,41 +1,64 @@
+# ingestion/download_csv.py
+
 import argparse
-import yaml
+from pathlib import Path
+
 import requests
-from pyspark.sql import SparkSession
+import yaml
 
-spark = SparkSession.builder.getOrCreate()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--config", required=True)
-parser.add_argument("--source", required=True)
-args = parser.parse_args()
+def load_config(config_path: str) -> dict:
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
 
-with open(args.config, "r") as f:
-    config = yaml.safe_load(f)
 
-source = config["sources"][args.source]
+def download_file(url: str, target_path: str) -> None:
+    Path(target_path).parent.mkdir(parents=True, exist_ok=True)
 
-if not source.get("enabled", True):
-    raise Exception(f"Source disabled: {args.source}")
+    with requests.get(url, stream=True, timeout=(30, 600)) as response:
+        response.raise_for_status()
 
-url = source["url"]
-catalog = source["catalog"]
-schema = source["schema"]
-volume = source["volume"]
-file_name = source["file_name"]
+        with open(target_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    f.write(chunk)
 
-volume_path = f"/Volumes/{catalog}/{schema}/{volume}"
-target_path = f"{volume_path}/{file_name}"
-tmp_file = f"/tmp/{file_name}"
 
-response = requests.get(url, stream=True, timeout=(30, 600))
-response.raise_for_status()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", required=True)
+    parser.add_argument("--source", required=True)
+    args = parser.parse_args()
 
-with open(tmp_file, "wb") as f:
-    for chunk in response.iter_content(chunk_size=1024 * 1024):
-        if chunk:
-            f.write(chunk)
+    script_dir = Path(__file__).resolve().parent
+    config_path = (script_dir / args.config).resolve()
 
-dbutils.fs.cp(f"file:{tmp_file}", target_path, True)
+    print(f"Config path: {config_path}")
+    print(f"Source: {args.source}")
 
-print(f"Arquivo salvo em: {target_path}")
+    config = load_config(config_path)
+
+    source = config["sources"][args.source]
+
+    if not source.get("enabled", True):
+        raise Exception(f"Source disabled: {args.source}")
+
+    url = source["url"]
+    catalog = source["catalog"]
+    schema = source["schema"]
+    volume = source["volume"]
+    file_name = source["file_name"]
+
+    volume_path = f"/Volumes/{catalog}/{schema}/{volume}"
+    target_path = f"{volume_path}/{file_name}"
+
+    print(f"URL: {url}")
+    print(f"Target path: {target_path}")
+
+    download_file(url, target_path)
+
+    print(f"Arquivo salvo com sucesso em: {target_path}")
+
+
+if __name__ == "__main__":
+    main()
