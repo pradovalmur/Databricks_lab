@@ -1,0 +1,25 @@
+resources:
+  jobs:
+    ingest_operacoes:
+      name: ingest_operacoes
+
+      tasks:
+        - task_key: download_raw_file
+
+          spark_python_task:
+            python_file: ../ingestion/download_csv.py
+            parameters:
+              - --config
+              - ../config/sources.yml
+              - --source
+              - tesouro_direto_operacoes_2025
+
+
+        - task_key: bronze_ingestion
+
+          depends_on:
+            - task_key: download_raw_file
+
+          notebook_task:
+            notebook_path: ../notebooks/bronze/bronze_operacoes
+
