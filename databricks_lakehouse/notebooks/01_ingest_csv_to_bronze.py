@@ -18,15 +18,34 @@ dbutils.fs.mkdirs(volume_path)
 
 # COMMAND ----------
 
-import requests
+# COMMAND ----------
 
-response = requests.get(csv_url, timeout=300)
-response.raise_for_status()
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+session = requests.Session()
+
+retry_strategy = Retry(
+    total=5,
+    backoff_factor=2,
+    status_forcelist=[429, 500, 502, 503, 504],
+    allowed_methods=["GET"]
+)
+
+adapter = HTTPAdapter(max_retries=retry_strategy)
+session.mount("http://", adapter)
+session.mount("https://", adapter)
 
 local_tmp_file = f"/tmp/{raw_file_name}"
 
-with open(local_tmp_file, "wb") as f:
-    f.write(response.content)
+with session.get(csv_url, stream=True, timeout=(30, 600)) as response:
+    response.raise_for_status()
+
+    with open(local_tmp_file, "wb") as f:
+        for chunk in response.iter_content(chunk_size=1024 * 1024):
+            if chunk:
+                f.write(chunk)
 
 dbutils.fs.cp(f"file:{local_tmp_file}", raw_file_path, True)
 
