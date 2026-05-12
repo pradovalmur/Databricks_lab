@@ -1,6 +1,8 @@
 # Databricks notebook source
 
+import re
 import yaml
+import unicodedata
 from pathlib import Path
 
 from pyspark.sql.functions import (
@@ -20,6 +22,26 @@ source_name = dbutils.widgets.get("source")
 
 print(f"Config: {config_arg}")
 print(f"Source: {source_name}")
+
+# COMMAND ----------
+
+def to_camel_case(column_name: str) -> str:
+    normalized = unicodedata.normalize("NFKD", column_name)
+    normalized = normalized.encode("ascii", "ignore").decode("utf-8")
+
+    normalized = re.sub(r"[^a-zA-Z0-9 ]", " ", normalized)
+
+    parts = normalized.strip().split()
+
+    if not parts:
+        return "column"
+
+    return parts[0].lower() + "".join(part.capitalize() for part in parts[1:])
+
+
+def normalize_columns(df):
+    new_columns = [to_camel_case(c) for c in df.columns]
+    return df.toDF(*new_columns)
 
 # COMMAND ----------
 
@@ -61,17 +83,19 @@ df_raw = (
     .csv(raw_path)
 )
 
+df_raw = normalize_columns(df_raw)
+
 display(df_raw.limit(10))
 
 # COMMAND ----------
 
 df_bronze = (
     df_raw
-    .withColumn("_source_name", lit(source_name))
-    .withColumn("_source_file", col("_metadata.file_path"))
-    .withColumn("_raw_file_name", lit(file_name))
-    .withColumn("_ingestion_ts", current_timestamp())
-    .withColumn("_ingestion_date", current_date())
+    .withColumn("_sourceName", lit(source_name))
+    .withColumn("_sourceFile", col("_metadata.file_path"))
+    .withColumn("_rawFileName", lit(file_name))
+    .withColumn("_ingestionTs", current_timestamp())
+    .withColumn("_ingestionDate", current_date())
 )
 
 display(df_bronze.limit(10))
@@ -92,7 +116,7 @@ print(f"Dados carregados na Bronze: {target_table}")
 
 spark.sql(f"""
 SELECT 
-  COUNT(*) AS total_rows,
-  COUNT(DISTINCT _raw_file_name) AS total_files
+  COUNT(*) AS totalRows,
+  COUNT(DISTINCT _rawFileName) AS totalFiles
 FROM {target_table}
 """).display()
