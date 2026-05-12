@@ -1,0 +1,33 @@
+hubs:
+  hubInvestidor:
+    source_table: "lakehouse_lab.bronze.investidores"
+    business_key:
+      - "codigoDoInvestidor"
+
+  hubTitulo:
+    source_table: "lakehouse_lab.bronze.operacoes"
+    business_key:
+      - "tipoTitulo"
+
+links:
+  linkInvestidorTituloOperacao:
+    source_table: "lakehouse_lab.bronze.operacoes"
+
+    business_keys:
+      investidor:
+        - "codigoDoInvestidor"
+
+      titulo:
+        - "tipoTitulo"
+
+satellites:
+  satOperacao:
+    source_table: "lakehouse_lab.bronze.operacoes"
+
+    hash_key: "linkInvestidorTituloOperacaoHk"
+
+    attributes:
+      - "dataDaOperacao"
+      - "quantidade"
+      - "valorDaOperacao"
+      - "tipoDaOperacao"
