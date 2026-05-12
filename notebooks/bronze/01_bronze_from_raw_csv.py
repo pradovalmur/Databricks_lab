@@ -1,6 +1,5 @@
 # Databricks notebook source
 
-import argparse
 import yaml
 from pathlib import Path
 
@@ -13,22 +12,26 @@ from pyspark.sql.functions import (
 
 # COMMAND ----------
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--config", required=True)
-parser.add_argument("--source", required=True)
+dbutils.widgets.text("config", "")
+dbutils.widgets.text("source", "")
 
-args = parser.parse_args()
+config_arg = dbutils.widgets.get("config")
+source_name = dbutils.widgets.get("source")
 
-script_dir = Path(__file__).resolve().parent
-config_path = (script_dir / args.config).resolve()
+print(f"Config: {config_arg}")
+print(f"Source: {source_name}")
 
-print(f"Config path: {config_path}")
-print(f"Source: {args.source}")
+# COMMAND ----------
+
+notebook_dir = Path.cwd()
+config_path = (notebook_dir / config_arg).resolve()
+
+print(f"Config path resolvido: {config_path}")
 
 with open(config_path, "r") as f:
     config = yaml.safe_load(f)
 
-source = config["sources"][args.source]
+source = config["sources"][source_name]
 
 # COMMAND ----------
 
@@ -36,9 +39,7 @@ catalog = source["catalog"]
 schema = source["schema"]
 volume = source["volume"]
 
-source_name = args.source
 file_name = source["file_name"]
-
 delimiter = source.get("delimiter", ",")
 header = str(source.get("header", True)).lower()
 
