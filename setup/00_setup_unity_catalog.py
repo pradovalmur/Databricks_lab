@@ -1,16 +1,20 @@
 # Databricks notebook source
 
 catalog_name = "lakehouse_lab"
-schema_bronze = "bronze"
-volume_name = "raw"
+
+schemas = ["bronze", "silver", "gold"]
 
 # COMMAND ----------
 
 spark.sql(f"CREATE CATALOG IF NOT EXISTS {catalog_name}")
-spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog_name}.{schema_bronze}")
+
+for schema in schemas:
+    spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog_name}.{schema}")
+
+# COMMAND ----------
 
 spark.sql(f"""
-CREATE VOLUME IF NOT EXISTS {catalog_name}.{schema_bronze}.{volume_name}
+CREATE VOLUME IF NOT EXISTS {catalog_name}.bronze.raw
 """)
 
-print("Unity Catalog configurado.")
+print("Unity Catalog configurado com bronze, silver, gold e volume raw.")
