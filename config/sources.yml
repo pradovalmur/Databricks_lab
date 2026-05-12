@@ -7,5 +7,6 @@ sources:
     schema: "bronze"
     volume: "raw"
     file_name: "operacoes_tesouro_direto.csv"
+    bronze_table: "operacoes"
     delimiter: ";"
     header: true
