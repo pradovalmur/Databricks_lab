@@ -10,3 +10,15 @@ sources:
     bronze_table: "operacoes"
     delimiter: ";"
     header: true
+  
+    tesouro_direto_investidores_2025:
+      enabled: true
+      type: csv
+      url: "https://www.tesourotransparente.gov.br/ckan/dataset/48a7fd9d-78e5-43cb-bcba-6e7dcaf2d741/resource/18e4769f-4549-41ce-82f5-b036b2e6e793/download/investidorestesourodireto2025.csv"
+      catalog: "lakehouse_lab"
+      schema: "bronze"
+      volume: "raw"
+      file_name: "investidores_tesouro_direto_2025.csv"
+      bronze_table: "investidores"
+      delimiter: ";"
+      header: true
