@@ -1,0 +1,11 @@
+sources:
+  tesouro_direto_operacoes_2025:
+    enabled: true
+    type: csv
+    url: "https://www.tesourotransparente.gov.br/ckan/dataset/78739a33-4d2f-4e35-88fd-65f1ccbe81c4/resource/6908b59b-d9da-4b33-b15a-a89c2b71dc50/download/operacoestesourodireto2025.csv"
+    catalog: "lakehouse_lab"
+    schema: "bronze"
+    volume: "raw"
+    file_name: "operacoes_tesouro_direto.csv"
+    delimiter: ";"
+    header: true
