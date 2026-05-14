@@ -1,12 +1,18 @@
 # Databricks notebook source
 
 from pyspark.sql.window import Window
-from pyspark.sql.functions import col, row_number, current_timestamp, current_date
+from pyspark.sql.functions import (
+    col,
+    row_number,
+    current_timestamp,
+    current_date
+)
 
 # COMMAND ----------
 
 source_hub = "lakehouse_lab.silver.hubInvestidor"
 source_sat = "lakehouse_lab.silver.satInvestidor"
+
 target_table = "lakehouse_lab.gold.pitInvestidor"
 
 # COMMAND ----------
@@ -41,10 +47,16 @@ df_pit = (
     .select(
         col("h.hubInvestidorHk"),
         col("h.codigoDoInvestidor"),
-        col("s.*")
+
+        *[
+            col(f"s.{c}")
+            for c in df_sat_latest.columns
+            if c not in [
+                "hubInvestidorHk",
+                "codigoDoInvestidor"
+            ]
+        ]
     )
-    .drop("hubInvestidorHk")
-    .withColumnRenamed("h.hubInvestidorHk", "hubInvestidorHk")
     .withColumn("_pitLoadTs", current_timestamp())
     .withColumn("_pitLoadDate", current_date())
 )

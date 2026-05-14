@@ -8,7 +8,8 @@ from pyspark.sql.functions import (
     min as spark_min,
     max as spark_max,
     current_timestamp,
-    current_date
+    current_date,
+    regexp_replace
 )
 
 # COMMAND ----------
@@ -26,6 +27,13 @@ df_link = spark.table(source_link)
 df_inv = spark.table(source_hub_investidor)
 df_titulo = spark.table(source_hub_titulo)
 df_sat_operacao = spark.table(source_sat_operacao)
+
+# COMMAND ----------
+
+df_sat_operacao = df_sat_operacao.withColumn(
+    "valorDaOperacaoDouble",
+    regexp_replace(col("valorDaOperacao"), ",", ".").cast("double")
+)
 
 # COMMAND ----------
 
@@ -55,7 +63,7 @@ df_bridge = (
     .agg(
         count("*").alias("totalOperacoes"),
         countDistinct("s.dataDaOperacao").alias("totalDiasOperados"),
-        spark_sum(col("s.valorDaOperacao")).alias("valorTotalOperado"),
+        spark_sum(col("s.valorDaOperacaoDouble")).alias("valorTotalOperado"),
         spark_min(col("s.dataDaOperacao")).alias("primeiraOperacao"),
         spark_max(col("s.dataDaOperacao")).alias("ultimaOperacao")
     )
