@@ -2,15 +2,16 @@ sources:
   tesouro_direto_operacoes_2025:
     enabled: true
     type: csv
-    url: "https://www.tesourotransparente.gov.br/ckan/dataset/78739a33-4d2f-4e35-88fd-65f1ccbe81c4/resource/6908b59b-d9da-4b33-b15a-a89c2b71dc50/download/operacoestesourodireto2025.csv"
+    url: "https://www.tesourotransparente.gov.br/ckan/dataset/78739a33-4d2f-4e35-88fd-65f1ccbe81c4/resource/8661070e-d060-42ef-a53f-79b1e1be2d1b/download/operacoestesourodireto2025.csv"
     catalog: "lakehouse_lab"
     schema: "bronze"
     volume: "raw"
-    file_name: "operacoes_tesouro_direto.csv"
+    file_name: "operacoes_tesouro_direto_2025.csv"
     bronze_table: "operacoes"
     delimiter: ";"
     header: true
-  
+    overwrite: false
+
   tesouro_direto_investidores_2025:
     enabled: true
     type: csv
@@ -22,3 +23,4 @@ sources:
     bronze_table: "investidores"
     delimiter: ";"
     header: true
+    overwrite: false

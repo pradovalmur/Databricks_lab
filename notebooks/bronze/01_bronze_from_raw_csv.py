@@ -28,7 +28,6 @@ print(f"Source: {source_name}")
 def to_camel_case(column_name: str) -> str:
     normalized = unicodedata.normalize("NFKD", column_name)
     normalized = normalized.encode("ascii", "ignore").decode("utf-8")
-
     normalized = re.sub(r"[^a-zA-Z0-9 ]", " ", normalized)
 
     parts = normalized.strip().split()
@@ -101,6 +100,16 @@ df_bronze = (
 display(df_bronze.limit(10))
 
 # COMMAND ----------
+
+if spark.catalog.tableExists(target_table):
+    print(f"Tabela existe. Removendo dados antigos do arquivo: {file_name}")
+
+    spark.sql(f"""
+        DELETE FROM {target_table}
+        WHERE _rawFileName = '{file_name}'
+    """)
+else:
+    print(f"Tabela ainda não existe: {target_table}")
 
 (
     df_bronze.write
