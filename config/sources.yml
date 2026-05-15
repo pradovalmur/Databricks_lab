@@ -12,6 +12,30 @@ sources:
     header: true
     overwrite: false
 
+    data_quality:
+      bronze:
+        min_rows: 1000
+        required_columns:
+          - codigoDoInvestidor
+          - dataDaOperacao
+          - tipoTitulo
+          - vencimentoDoTitulo
+          - valorDoTitulo
+          - valorDaOperacao
+          - tipoDaOperacao
+          - canalDaOperacao
+        not_null:
+          - codigoDoInvestidor
+          - dataDaOperacao
+          - tipoTitulo
+          - valorDaOperacao
+        unique_keys:
+          - codigoDoInvestidor
+          - dataDaOperacao
+          - tipoTitulo
+          - tipoDaOperacao
+          - valorDaOperacao
+
   tesouro_direto_investidores_2025:
     enabled: true
     type: csv
@@ -24,3 +48,13 @@ sources:
     delimiter: ";"
     header: true
     overwrite: false
+
+    data_quality:
+      bronze:
+        min_rows: 1000
+        required_columns:
+          - codigoDoInvestidor
+        not_null:
+          - codigoDoInvestidor
+        unique_keys:
+          - codigoDoInvestidor
