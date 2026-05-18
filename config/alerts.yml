@@ -1,4 +1,11 @@
 alerts:
+
+  slack:
+    enabled: true
+    channel: "data_quality_notification"
+    webhook_secret_scope: "lakehouse_lab"
+    webhook_secret_key: "slack_data_quality_webhook"
+
   default:
     ERROR:
       emails:
@@ -13,7 +20,7 @@ alerts:
       ERROR:
         emails:
           - "pradovalmur@gmail.com"
-          - "pradovalmur@outlook.com.com"
+          - "pradovalmur@outlook.com"
 
       WARNING:
         emails:
