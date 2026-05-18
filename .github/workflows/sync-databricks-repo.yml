@@ -19,4 +19,4 @@ jobs:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
-          databricks repos update "/Workspace/Users/pradovalmur@gmail.com/databricks_lab" --branch main
+          databricks repos update "/Workspace/Users/pradovalmur@gmail.com/Databricks_lab" --branch main
