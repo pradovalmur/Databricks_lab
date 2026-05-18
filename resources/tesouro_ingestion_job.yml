@@ -1,0 +1,204 @@
+resources:
+  jobs:
+    Tesouro_ingestion:
+      name: Tesouro_ingestion
+      tasks:
+        - task_key: setup_unity_catalog
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/setup/00_setup_unity_catalog
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: download_investidores
+          depends_on:
+            - task_key: setup_unity_catalog
+          spark_python_task:
+            python_file: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/ingestions/download_csv.py
+            parameters:
+              - --config
+              - ../config/sources.yml
+              - --source
+              - tesouro_direto_investidores_2025
+          environment_key: Default
+        - task_key: investidores_raw_to_bronze
+          depends_on:
+            - task_key: download_investidores
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/bronze/01_bronze_from_raw_csv
+            base_parameters:
+              config: ../../config/sources.yml
+              source: tesouro_direto_investidores_2025
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: quality_bronze_investidores
+          depends_on:
+            - task_key: investidores_raw_to_bronze
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/quality/01_quality_bronze
+            base_parameters:
+              config: ../../config/sources.yml
+              source: tesouro_direto_investidores_2025
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_bronze_investidores
+              severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: hub_investidor
+          depends_on:
+            - task_key: quality_bronze_investidores
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/silver/datavault/01_hub_investidor
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: quality_silver_hub_investidor
+          depends_on:
+            - task_key: hub_investidor
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/quality/02_quality_silver_hub
+            base_parameters:
+              config: ../../../config/datavault.yml
+              hub_name: hubInvestidor
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_hub_investidor
+              severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: sat_investidor
+          depends_on:
+            - task_key: quality_silver_hub_investidor
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/silver/datavault/04_sat_investidor
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: pit_investidor
+          depends_on:
+            - task_key: sat_investidor
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/gold/pit/01_pit_investidor
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: mart_perfil_investidor
+          depends_on:
+            - task_key: pit_investidor
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/gold/marts/02_mart_perfil_investidor
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: send_slack_alert_investidores
+          depends_on:
+            - task_key: quality_bronze_investidores
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/notifications/01_send_slack_data_quality_alert
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_bronze_investidores
+              severity: ERROR
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: download_operations
+          depends_on:
+            - task_key: setup_unity_catalog
+          spark_python_task:
+            python_file: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/ingestions/download_csv.py
+            parameters:
+              - --config
+              - /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/config/sources.yml
+              - --source
+              - tesouro_direto_operacoes_2025
+          environment_key: Default
+        - task_key: operations_raw_to_bronze_table
+          depends_on:
+            - task_key: download_operations
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/bronze/01_bronze_from_raw_csv
+            base_parameters:
+              config: ../../config/sources.yml
+              source: tesouro_direto_operacoes_2025
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: quality_bronze_operacoes
+          depends_on:
+            - task_key: operations_raw_to_bronze_table
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/quality/01_quality_bronze
+            base_parameters:
+              config: ../../config/sources.yml
+              source: tesouro_direto_operacoes_2025
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_bronze_operacoes
+              severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: hub_titulo
+          depends_on:
+            - task_key: quality_bronze_operacoes
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/silver/datavault/02_hub_titulo
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: quality_silver_hub_titulo
+          depends_on:
+            - task_key: hub_titulo
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/quality/02_quality_silver_hub
+            base_parameters:
+              config: ../../../config/datavault.yml
+              hub_name: hubTitulo
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_hub_titulo
+              severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: link_investidor_titulo_operacao
+          depends_on:
+            - task_key: quality_silver_hub_titulo
+            - task_key: quality_silver_hub_investidor
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/silver/datavault/03_link_investidor_titulo_operacao
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: sat_operacao
+          depends_on:
+            - task_key: link_investidor_titulo_operacao
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/silver/datavault/05_sat_operacao
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: bridge_investidor_titulo
+          depends_on:
+            - task_key: link_investidor_titulo_operacao
+            - task_key: sat_operacao
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/gold/bridge/01_bridge_investidor_titulo
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: mart_resumo_titulo
+          depends_on:
+            - task_key: bridge_investidor_titulo
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/gold/marts/01_mart_resumo_titulo
+            source: WORKSPACE
+          environment_key: Default
+        - task_key: send_slack_alert_operacoes
+          depends_on:
+            - task_key: quality_bronze_operacoes
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/notifications/01_send_slack_data_quality_alert
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_bronze_operacoes
+              severity: ERROR
+            source: WORKSPACE
+          environment_key: Default
+      queue:
+        enabled: true
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "5"
+      performance_target: PERFORMANCE_OPTIMIZED

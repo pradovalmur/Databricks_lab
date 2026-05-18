@@ -1,0 +1,32 @@
+name: Deploy Databricks Job
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "databricks.yml"
+      - "resources/**"
+      - ".github/workflows/deploy-databricks-job.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: databricks/setup-cli@main
+
+      - name: Validate bundle
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle validate -t dev
+
+      - name: Deploy bundle
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle deploy -t dev
