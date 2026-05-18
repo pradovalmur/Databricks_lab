@@ -1,0 +1,31 @@
+alerts:
+  default:
+    ERROR:
+      emails:
+        - "pradovalmur@gmail.com"
+
+    WARNING:
+      emails:
+        - "pradovalmur@gmail.com"
+
+  pipelines:
+    tesouro_direto_pipeline:
+      ERROR:
+        emails:
+          - "pradovalmur@gmail.com"
+          - "pradovalmur@outlook.com.com"
+
+      WARNING:
+        emails:
+          - "pradovalmur@gmail.com"
+
+  tasks:
+    quality_bronze_operacoes:
+      ERROR:
+        emails:
+          - "pradovalmur@gmail.com"
+
+    quality_bronze_investidores:
+      ERROR:
+        emails:
+          - "pradovalmur@gmail.com"

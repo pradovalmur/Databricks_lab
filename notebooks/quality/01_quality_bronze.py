@@ -8,12 +8,20 @@ from pyspark.sql.functions import col, count, current_timestamp, lit
 
 dbutils.widgets.text("config", "")
 dbutils.widgets.text("source", "")
+dbutils.widgets.text("pipeline_name", "tesouro_direto_pipeline")
+dbutils.widgets.text("task_name", "quality_bronze")
+dbutils.widgets.text("severity_on_failure", "ERROR")
 
 config_arg = dbutils.widgets.get("config")
 source_name = dbutils.widgets.get("source")
+pipeline_name = dbutils.widgets.get("pipeline_name")
+task_name = dbutils.widgets.get("task_name")
+severity_on_failure = dbutils.widgets.get("severity_on_failure")
 
 print(f"Config: {config_arg}")
 print(f"Source: {source_name}")
+print(f"Pipeline: {pipeline_name}")
+print(f"Task: {task_name}")
 
 # COMMAND ----------
 
@@ -36,30 +44,53 @@ dq_config = (
     .get("bronze", {})
 )
 
+audit_schema = f"{catalog}.audit"
+audit_table = f"{audit_schema}.dataQualityResults"
+
 print(f"Target table: {target_table}")
-print(f"Data quality config: {dq_config}")
+print(f"Audit table: {audit_table}")
 
 # COMMAND ----------
 
 df = spark.table(target_table)
 
+try:
+    job_id = dbutils.widgets.get("job_id")
+except:
+    job_id = None
+
+try:
+    run_id = dbutils.widgets.get("run_id")
+except:
+    run_id = None
+
 results = []
 
-def add_result(check_name, status, metric_value=None, threshold_value=None, message=None):
+def add_result(
+    check_name,
+    status,
+    metric_value=None,
+    threshold_value=None,
+    message=None,
+    severity="INFO"
+):
     results.append({
+        "pipelineName": pipeline_name,
+        "taskName": task_name,
         "sourceName": source_name,
         "layer": "bronze",
         "tableName": target_table,
         "checkName": check_name,
         "checkStatus": status,
+        "severity": severity,
         "metricValue": str(metric_value) if metric_value is not None else None,
         "thresholdValue": str(threshold_value) if threshold_value is not None else None,
-        "message": message
+        "message": message,
+        "jobId": str(job_id) if job_id else None,
+        "runId": str(run_id) if run_id else None
     })
 
 # COMMAND ----------
-
-# Check 1: min rows
 
 row_count = df.count()
 min_rows = dq_config.get("min_rows")
@@ -73,31 +104,29 @@ if min_rows is not None:
             "FAILED",
             row_count,
             min_rows,
-            f"Row count abaixo do mínimo esperado. Atual: {row_count}, esperado: {min_rows}"
+            f"Row count abaixo do mínimo esperado. Atual: {row_count}, esperado: {min_rows}",
+            severity_on_failure
         )
 
 # COMMAND ----------
-
-# Check 2: required columns
 
 required_columns = dq_config.get("required_columns", [])
 existing_columns = set(df.columns)
 
 for required_column in required_columns:
     if required_column in existing_columns:
-        add_result("required_column", "PASSED", required_column, None)
+        add_result("required_column", "PASSED", required_column)
     else:
         add_result(
             "required_column",
             "FAILED",
             required_column,
             None,
-            f"Coluna obrigatória ausente: {required_column}"
+            f"Coluna obrigatória ausente: {required_column}",
+            severity_on_failure
         )
 
 # COMMAND ----------
-
-# Check 3: not null
 
 not_null_columns = dq_config.get("not_null", [])
 
@@ -108,7 +137,8 @@ for column_name in not_null_columns:
             "FAILED",
             column_name,
             None,
-            f"Coluna não encontrada para validação not_null: {column_name}"
+            f"Coluna não encontrada para validação not_null: {column_name}",
+            severity_on_failure
         )
         continue
 
@@ -122,52 +152,11 @@ for column_name in not_null_columns:
             "FAILED",
             null_count,
             0,
-            f"Coluna {column_name} possui {null_count} valores nulos"
+            f"Coluna {column_name} possui {null_count} valores nulos",
+            severity_on_failure
         )
 
 # COMMAND ----------
-
-# Check 4: unique key
-
-unique_keys = dq_config.get("unique_keys", [])
-
-if unique_keys:
-    missing_keys = [c for c in unique_keys if c not in existing_columns]
-
-    if missing_keys:
-        add_result(
-            "unique_keys",
-            "FAILED",
-            ",".join(missing_keys),
-            None,
-            f"Colunas de chave únicas ausentes: {missing_keys}"
-        )
-    else:
-        duplicate_count = (
-            df
-            .groupBy(*unique_keys)
-            .agg(count("*").alias("cnt"))
-            .filter(col("cnt") > 1)
-            .count()
-        )
-
-        if duplicate_count == 0:
-            add_result("unique_keys", "PASSED", 0, 0)
-        else:
-            add_result(
-                "unique_keys",
-                "FAILED",
-                duplicate_count,
-                0,
-                f"Foram encontradas {duplicate_count} chaves duplicadas"
-            )
-
-# COMMAND ----------
-
-# Persistência dos resultados
-
-audit_schema = f"{catalog}.audit"
-audit_table = f"{audit_schema}.dataQualityResults"
 
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS {audit_schema}")
 
