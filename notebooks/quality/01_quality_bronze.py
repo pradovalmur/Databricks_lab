@@ -2,7 +2,9 @@
 
 import yaml
 from pathlib import Path
-from pyspark.sql.functions import col, count, current_timestamp, lit
+
+from pyspark.sql.functions import col, count, current_timestamp
+from pyspark.sql.types import StructType, StructField, StringType
 
 # COMMAND ----------
 
@@ -18,11 +20,6 @@ pipeline_name = dbutils.widgets.get("pipeline_name")
 task_name = dbutils.widgets.get("task_name")
 severity_on_failure = dbutils.widgets.get("severity_on_failure")
 
-print(f"Config: {config_arg}")
-print(f"Source: {source_name}")
-print(f"Pipeline: {pipeline_name}")
-print(f"Task: {task_name}")
-
 # COMMAND ----------
 
 config_path = (Path.cwd() / config_arg).resolve()
@@ -37,33 +34,18 @@ schema = source["schema"]
 bronze_table = source.get("bronze_table", source_name)
 
 target_table = f"{catalog}.{schema}.{bronze_table}"
-
-dq_config = (
-    source
-    .get("data_quality", {})
-    .get("bronze", {})
-)
-
 audit_schema = f"{catalog}.audit"
 audit_table = f"{audit_schema}.dataQualityResults"
 
+dq_config = source.get("data_quality", {}).get("bronze", {})
+
 print(f"Target table: {target_table}")
 print(f"Audit table: {audit_table}")
+print(f"DQ config: {dq_config}")
 
 # COMMAND ----------
 
 df = spark.table(target_table)
-
-try:
-    job_id = dbutils.widgets.get("job_id")
-except:
-    job_id = None
-
-try:
-    run_id = dbutils.widgets.get("run_id")
-except:
-    run_id = None
-
 results = []
 
 def add_result(
@@ -86,11 +68,13 @@ def add_result(
         "metricValue": str(metric_value) if metric_value is not None else None,
         "thresholdValue": str(threshold_value) if threshold_value is not None else None,
         "message": message,
-        "jobId": str(job_id) if job_id else None,
-        "runId": str(run_id) if run_id else None
+        "jobId": None,
+        "runId": None
     })
 
 # COMMAND ----------
+
+# Check: min_rows
 
 row_count = df.count()
 min_rows = dq_config.get("min_rows")
@@ -110,6 +94,8 @@ if min_rows is not None:
 
 # COMMAND ----------
 
+# Check: required_columns
+
 required_columns = dq_config.get("required_columns", [])
 existing_columns = set(df.columns)
 
@@ -127,6 +113,8 @@ for required_column in required_columns:
         )
 
 # COMMAND ----------
+
+# Check: not_null
 
 not_null_columns = dq_config.get("not_null", [])
 
@@ -158,9 +146,64 @@ for column_name in not_null_columns:
 
 # COMMAND ----------
 
+# Check: unique_keys opcional
+
+unique_keys = dq_config.get("unique_keys", [])
+
+if unique_keys:
+    missing_keys = [c for c in unique_keys if c not in existing_columns]
+
+    if missing_keys:
+        add_result(
+            "unique_keys",
+            "FAILED",
+            ",".join(missing_keys),
+            None,
+            f"Colunas de chave únicas ausentes: {missing_keys}",
+            severity_on_failure
+        )
+    else:
+        duplicate_count = (
+            df
+            .groupBy(*unique_keys)
+            .agg(count("*").alias("cnt"))
+            .filter(col("cnt") > 1)
+            .count()
+        )
+
+        if duplicate_count == 0:
+            add_result("unique_keys", "PASSED", 0, 0)
+        else:
+            add_result(
+                "unique_keys",
+                "FAILED",
+                duplicate_count,
+                0,
+                f"Foram encontradas {duplicate_count} chaves duplicadas",
+                severity_on_failure
+            )
+
+# COMMAND ----------
+
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS {audit_schema}")
 
-df_results = spark.createDataFrame(results).withColumn(
+schema_results = StructType([
+    StructField("pipelineName", StringType(), True),
+    StructField("taskName", StringType(), True),
+    StructField("sourceName", StringType(), True),
+    StructField("layer", StringType(), True),
+    StructField("tableName", StringType(), True),
+    StructField("checkName", StringType(), True),
+    StructField("checkStatus", StringType(), True),
+    StructField("severity", StringType(), True),
+    StructField("metricValue", StringType(), True),
+    StructField("thresholdValue", StringType(), True),
+    StructField("message", StringType(), True),
+    StructField("jobId", StringType(), True),
+    StructField("runId", StringType(), True)
+])
+
+df_results = spark.createDataFrame(results, schema=schema_results).withColumn(
     "checkedAt",
     current_timestamp()
 )
