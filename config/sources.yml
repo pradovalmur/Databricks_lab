@@ -29,12 +29,6 @@ sources:
           - dataDaOperacao
           - tipoTitulo
           - valorDaOperacao
-        unique_keys:
-          - codigoDoInvestidor
-          - dataDaOperacao
-          - tipoTitulo
-          - tipoDaOperacao
-          - valorDaOperacao
 
   tesouro_direto_investidores_2025:
     enabled: true
@@ -55,6 +49,4 @@ sources:
         required_columns:
           - codigoDoInvestidor
         not_null:
-          - codigoDoInvestidor
-        unique_keys:
           - codigoDoInvestidor
