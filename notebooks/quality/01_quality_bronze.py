@@ -74,8 +74,6 @@ def add_result(
 
 # COMMAND ----------
 
-# Check: min_rows
-
 row_count = df.count()
 min_rows = dq_config.get("min_rows")
 
@@ -94,8 +92,6 @@ if min_rows is not None:
 
 # COMMAND ----------
 
-# Check: required_columns
-
 required_columns = dq_config.get("required_columns", [])
 existing_columns = set(df.columns)
 
@@ -113,8 +109,6 @@ for required_column in required_columns:
         )
 
 # COMMAND ----------
-
-# Check: not_null
 
 not_null_columns = dq_config.get("not_null", [])
 
@@ -145,8 +139,6 @@ for column_name in not_null_columns:
         )
 
 # COMMAND ----------
-
-# Check: unique_keys opcional
 
 unique_keys = dq_config.get("unique_keys", [])
 
@@ -208,13 +200,22 @@ df_results = spark.createDataFrame(results, schema=schema_results).withColumn(
     current_timestamp()
 )
 
-(
-    df_results.write
-    .format("delta")
-    .mode("append")
-    .option("mergeSchema", "true")
-    .saveAsTable(audit_table)
-)
+# COMMAND ----------
+
+if spark.catalog.tableExists(audit_table):
+    (
+        df_results.write
+        .format("delta")
+        .mode("append")
+        .insertInto(audit_table)
+    )
+else:
+    (
+        df_results.write
+        .format("delta")
+        .mode("overwrite")
+        .saveAsTable(audit_table)
+    )
 
 display(df_results)
 
