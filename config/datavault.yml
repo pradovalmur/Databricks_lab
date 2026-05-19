@@ -9,39 +9,35 @@ hubs:
     business_key:
       - "tipoTitulo"
 
-  quality:
-    hubs:
-      hubInvestidor:
-        table: "lakehouse_lab.silver.hubInvestidor"
-        hash_key: "hubInvestidorHk"
-        business_keys:
-          - "codigoDoInvestidor"
-
-      hubTitulo:
-        table: "lakehouse_lab.silver.hubTitulo"
-        hash_key: "hubTituloHk"
-        business_keys:
-          - "tipoTitulo"
-
 links:
   linkInvestidorTituloOperacao:
     source_table: "lakehouse_lab.bronze.operacoes"
-
     business_keys:
       investidor:
         - "codigoDoInvestidor"
-
       titulo:
         - "tipoTitulo"
 
 satellites:
   satOperacao:
     source_table: "lakehouse_lab.bronze.operacoes"
-
     hash_key: "linkInvestidorTituloOperacaoHk"
-
     attributes:
       - "dataDaOperacao"
       - "quantidade"
       - "valorDaOperacao"
       - "tipoDaOperacao"
+
+quality:
+  hubs:
+    hubInvestidor:
+      table: "lakehouse_lab.silver.hubInvestidor"
+      hash_key: "hubInvestidorHk"
+      business_keys:
+        - "codigoDoInvestidor"
+
+    hubTitulo:
+      table: "lakehouse_lab.silver.hubTitulo"
+      hash_key: "hubTituloHk"
+      business_keys:
+        - "tipoTitulo"
