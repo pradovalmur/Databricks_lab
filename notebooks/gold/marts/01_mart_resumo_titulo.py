@@ -1,7 +1,9 @@
 # Databricks notebook source
 
+import yaml
+from pathlib import Path
+
 from pyspark.sql.functions import (
-    col,
     countDistinct,
     sum as spark_sum,
     min as spark_min,
@@ -12,8 +14,28 @@ from pyspark.sql.functions import (
 
 # COMMAND ----------
 
-source_table = "lakehouse_lab.gold.bridgeInvestidorTitulo"
-target_table = "lakehouse_lab.gold.martResumoTitulo"
+dbutils.widgets.text("config", "")
+dbutils.widgets.text("mart_name", "martResumoTitulo")
+
+config_arg = dbutils.widgets.get("config")
+mart_name = dbutils.widgets.get("mart_name")
+
+# COMMAND ----------
+
+def load_yaml_config(config_arg: str) -> dict:
+    config_path = (Path.cwd() / config_arg).resolve()
+    print(f"Config path resolvido: {config_path}")
+
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
+
+# COMMAND ----------
+
+config = load_yaml_config(config_arg)
+mart_config = config["gold"]["marts"][mart_name]
+
+source_table = mart_config["source_table"]
+target_table = mart_config["target_table"]
 
 # COMMAND ----------
 

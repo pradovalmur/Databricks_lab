@@ -22,10 +22,17 @@ severity_on_failure = dbutils.widgets.get("severity_on_failure")
 
 # COMMAND ----------
 
-config_path = (Path.cwd() / config_arg).resolve()
+def load_yaml_config(config_arg: str) -> dict:
+    config_path = (Path.cwd() / config_arg).resolve()
 
-with open(config_path, "r") as f:
-    config = yaml.safe_load(f)
+    print(f"Config path resolvido: {config_path}")
+
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
+
+# COMMAND ----------
+
+config = load_yaml_config(config_arg)
 
 source = config["sources"][source_name]
 

@@ -44,13 +44,17 @@ def normalize_columns(df):
 
 # COMMAND ----------
 
-notebook_dir = Path.cwd()
-config_path = (notebook_dir / config_arg).resolve()
+def load_yaml_config(config_arg: str) -> dict:
+    config_path = (Path.cwd() / config_arg).resolve()
 
-print(f"Config path resolvido: {config_path}")
+    print(f"Config path resolvido: {config_path}")
 
-with open(config_path, "r") as f:
-    config = yaml.safe_load(f)
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
+
+# COMMAND ----------
+
+config = load_yaml_config(config_arg)
 
 source = config["sources"][source_name]
 
@@ -65,12 +69,36 @@ delimiter = source.get("delimiter", ",")
 header = str(source.get("header", True)).lower()
 
 bronze_table = source.get("bronze_table", source_name)
+bronze_overwrite = source.get("bronze_overwrite", False)
 
 raw_path = f"/Volumes/{catalog}/{schema}/{volume}/{file_name}"
 target_table = f"{catalog}.{schema}.{bronze_table}"
 
 print(f"Raw path: {raw_path}")
 print(f"Target table: {target_table}")
+print(f"Bronze overwrite: {bronze_overwrite}")
+
+# COMMAND ----------
+
+if spark.catalog.tableExists(target_table):
+    existing_file_count = spark.sql(f"""
+        SELECT COUNT(*) AS cnt
+        FROM {target_table}
+        WHERE _rawFileName = '{file_name}'
+    """).collect()[0]["cnt"]
+
+    if existing_file_count > 0 and not bronze_overwrite:
+        print(f"Arquivo já processado na Bronze. Skip: {file_name}")
+        dbutils.notebook.exit("BRONZE_ALREADY_LOADED")
+
+    if existing_file_count > 0 and bronze_overwrite:
+        print(f"Arquivo já existe na Bronze. Reprocessando: {file_name}")
+        spark.sql(f"""
+            DELETE FROM {target_table}
+            WHERE _rawFileName = '{file_name}'
+        """)
+else:
+    print(f"Tabela ainda não existe: {target_table}")
 
 # COMMAND ----------
 
@@ -100,16 +128,6 @@ df_bronze = (
 display(df_bronze.limit(10))
 
 # COMMAND ----------
-
-if spark.catalog.tableExists(target_table):
-    print(f"Tabela existe. Removendo dados antigos do arquivo: {file_name}")
-
-    spark.sql(f"""
-        DELETE FROM {target_table}
-        WHERE _rawFileName = '{file_name}'
-    """)
-else:
-    print(f"Tabela ainda não existe: {target_table}")
 
 (
     df_bronze.write
