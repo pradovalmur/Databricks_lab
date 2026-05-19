@@ -1,5 +1,8 @@
 # Databricks notebook source
 
+import yaml
+from pathlib import Path
+
 from pyspark.sql.functions import (
     col,
     count,
@@ -14,19 +17,37 @@ from pyspark.sql.functions import (
 
 # COMMAND ----------
 
-source_link = "lakehouse_lab.silver.linkInvestidorTituloOperacao"
-source_hub_investidor = "lakehouse_lab.silver.hubInvestidor"
-source_hub_titulo = "lakehouse_lab.silver.hubTitulo"
-source_sat_operacao = "lakehouse_lab.silver.satOperacao"
+dbutils.widgets.text("config", "")
+dbutils.widgets.text("bridge_name", "")
 
-target_table = "lakehouse_lab.gold.bridgeInvestidorTitulo"
+config_arg = dbutils.widgets.get("config")
+bridge_name = dbutils.widgets.get("bridge_name")
+
+# COMMAND ----------
+
+def load_yaml_config(config_arg: str) -> dict:
+    config_path = (Path.cwd() / config_arg).resolve()
+    print(f"Config path resolvido: {config_path}")
+
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
+
+# COMMAND ----------
+
+config = load_yaml_config(config_arg)
+bridge_config = config["gold"]["bridges"][bridge_name]
+
+target_table = bridge_config["target_table"]
+source_link = bridge_config["source_link"]
+source_hubs = bridge_config["source_hubs"]
+source_satellites = bridge_config["source_satellites"]
 
 # COMMAND ----------
 
 df_link = spark.table(source_link)
-df_inv = spark.table(source_hub_investidor)
-df_titulo = spark.table(source_hub_titulo)
-df_sat_operacao = spark.table(source_sat_operacao)
+df_inv = spark.table(source_hubs["investidor"])
+df_titulo = spark.table(source_hubs["titulo"])
+df_sat_operacao = spark.table(source_satellites["operacao"])
 
 # COMMAND ----------
 

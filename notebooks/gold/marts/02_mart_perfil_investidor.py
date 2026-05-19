@@ -1,7 +1,9 @@
 # Databricks notebook source
 
+import yaml
+from pathlib import Path
+
 from pyspark.sql.functions import (
-    col,
     countDistinct,
     count,
     current_timestamp,
@@ -10,8 +12,28 @@ from pyspark.sql.functions import (
 
 # COMMAND ----------
 
-source_table = "lakehouse_lab.gold.pitInvestidor"
-target_table = "lakehouse_lab.gold.martPerfilInvestidor"
+dbutils.widgets.text("config", "")
+dbutils.widgets.text("mart_name", "martPerfilInvestidor")
+
+config_arg = dbutils.widgets.get("config")
+mart_name = dbutils.widgets.get("mart_name")
+
+# COMMAND ----------
+
+def load_yaml_config(config_arg: str) -> dict:
+    config_path = (Path.cwd() / config_arg).resolve()
+    print(f"Config path resolvido: {config_path}")
+
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
+
+# COMMAND ----------
+
+config = load_yaml_config(config_arg)
+mart_config = config["gold"]["marts"][mart_name]
+
+source_table = mart_config["source_table"]
+target_table = mart_config["target_table"]
 
 # COMMAND ----------
 
@@ -31,8 +53,6 @@ profile_columns = [
     ]
     if c in df.columns
 ]
-
-print(f"Colunas de perfil encontradas: {profile_columns}")
 
 # COMMAND ----------
 

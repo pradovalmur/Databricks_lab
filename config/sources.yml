@@ -10,7 +10,7 @@ sources:
     bronze_table: "operacoes"
     delimiter: ";"
     header: true
-    overwrite: false
+    bronze_overwrite: false
 
     data_quality:
       bronze:
@@ -41,7 +41,7 @@ sources:
     bronze_table: "investidores"
     delimiter: ";"
     header: true
-    overwrite: false
+    bronze_overwrite: false
 
     data_quality:
       bronze:

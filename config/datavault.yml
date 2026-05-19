@@ -1,32 +1,81 @@
 hubs:
   hubInvestidor:
     source_table: "lakehouse_lab.bronze.investidores"
+    target_table: "lakehouse_lab.silver.hubInvestidor"
+    hash_key: "hubInvestidorHk"
     business_key:
       - "codigoDoInvestidor"
 
   hubTitulo:
     source_table: "lakehouse_lab.bronze.operacoes"
+    target_table: "lakehouse_lab.silver.hubTitulo"
+    hash_key: "hubTituloHk"
     business_key:
       - "tipoTitulo"
 
 links:
   linkInvestidorTituloOperacao:
     source_table: "lakehouse_lab.bronze.operacoes"
+    target_table: "lakehouse_lab.silver.linkInvestidorTituloOperacao"
+    hash_key: "linkInvestidorTituloOperacaoHk"
     business_keys:
       investidor:
-        - "codigoDoInvestidor"
+        hub_key: "hubInvestidorHk"
+        keys:
+          - "codigoDoInvestidor"
       titulo:
-        - "tipoTitulo"
+        hub_key: "hubTituloHk"
+        keys:
+          - "tipoTitulo"
+    link_keys:
+      - "codigoDoInvestidor"
+      - "tipoTitulo"
+      - "dataDaOperacao"
 
 satellites:
+  satInvestidor:
+    source_table: "lakehouse_lab.bronze.investidores"
+    target_table: "lakehouse_lab.silver.satInvestidor"
+    hash_key: "hubInvestidorHk"
+    parent_keys:
+      - "codigoDoInvestidor"
+
   satOperacao:
     source_table: "lakehouse_lab.bronze.operacoes"
+    target_table: "lakehouse_lab.silver.satOperacao"
     hash_key: "linkInvestidorTituloOperacaoHk"
-    attributes:
+    parent_keys:
+      - "codigoDoInvestidor"
+      - "tipoTitulo"
       - "dataDaOperacao"
-      - "quantidade"
-      - "valorDaOperacao"
-      - "tipoDaOperacao"
+
+gold:
+  bridges:
+    bridgeInvestidorTitulo:
+      target_table: "lakehouse_lab.gold.bridgeInvestidorTitulo"
+      source_link: "lakehouse_lab.silver.linkInvestidorTituloOperacao"
+      source_hubs:
+        investidor: "lakehouse_lab.silver.hubInvestidor"
+        titulo: "lakehouse_lab.silver.hubTitulo"
+      source_satellites:
+        operacao: "lakehouse_lab.silver.satOperacao"
+
+  pits:
+    pitInvestidor:
+      target_table: "lakehouse_lab.gold.pitInvestidor"
+      source_hub: "lakehouse_lab.silver.hubInvestidor"
+      source_satellite: "lakehouse_lab.silver.satInvestidor"
+      hash_key: "hubInvestidorHk"
+      business_key: "codigoDoInvestidor"
+
+  marts:
+    martResumoTitulo:
+      source_table: "lakehouse_lab.gold.bridgeInvestidorTitulo"
+      target_table: "lakehouse_lab.gold.martResumoTitulo"
+
+    martPerfilInvestidor:
+      source_table: "lakehouse_lab.gold.pitInvestidor"
+      target_table: "lakehouse_lab.gold.martPerfilInvestidor"
 
 quality:
   hubs:
@@ -42,7 +91,7 @@ quality:
       business_keys:
         - "tipoTitulo"
 
-      links:
+  links:
     linkInvestidorTituloOperacao:
       table: "lakehouse_lab.silver.linkInvestidorTituloOperacao"
       hash_key: "linkInvestidorTituloOperacaoHk"
