@@ -41,3 +41,28 @@ quality:
       hash_key: "hubTituloHk"
       business_keys:
         - "tipoTitulo"
+
+      links:
+    linkInvestidorTituloOperacao:
+      table: "lakehouse_lab.silver.linkInvestidorTituloOperacao"
+      hash_key: "linkInvestidorTituloOperacaoHk"
+      hub_keys:
+        - "hubInvestidorHk"
+        - "hubTituloHk"
+
+  satellites:
+    satInvestidor:
+      table: "lakehouse_lab.silver.satInvestidor"
+      hash_key: "hubInvestidorHk"
+      required_columns:
+        - "hubInvestidorHk"
+        - "loadTs"
+
+    satOperacao:
+      table: "lakehouse_lab.silver.satOperacao"
+      hash_key: "linkInvestidorTituloOperacaoHk"
+      required_columns:
+        - "linkInvestidorTituloOperacaoHk"
+        - "loadTs"
+        - "valorDaOperacao"
+        - "dataDaOperacao"
