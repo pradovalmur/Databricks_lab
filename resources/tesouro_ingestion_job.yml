@@ -216,6 +216,123 @@ resources:
             source: WORKSPACE
           environment_key: Default
 
+        - task_key: send_slack_alert_hub_titulo
+          depends_on:
+            - task_key: quality_silver_hub_titulo
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/notifications/01_send_slack_data_quality_alert
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_hub_titulo
+              severity: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: send_slack_alert_hub_investidor
+          depends_on:
+            - task_key: quality_silver_hub_investidor
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/notifications/01_send_slack_data_quality_alert
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_hub_investidor
+              severity: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: quality_silver_link_operacao
+          depends_on:
+            - task_key: link_investidor_titulo_operacao
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/quality/03_quality_silver_link
+            base_parameters:
+              config: ../../config/datavault.yml
+              link_name: linkInvestidorTituloOperacao
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_link_operacao
+              severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: send_slack_alert_link_operacao
+          depends_on:
+            - task_key: quality_silver_link_operacao
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/notifications/01_send_slack_data_quality_alert
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_link_operacao
+              severity: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: quality_silver_sat_operacao
+          depends_on:
+            - task_key: sat_operacao
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/quality/04_quality_silver_satellite
+            base_parameters:
+              config: ../../config/datavault.yml
+              satellite_name: satOperacao
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_sat_operacao
+              severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: send_slack_alert_sat_operacao
+          depends_on:
+            - task_key: quality_silver_sat_operacao
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/notifications/01_send_slack_data_quality_alert
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_sat_operacao
+              severity: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: quality_silver_sat_investidor
+          depends_on:
+            - task_key: sat_investidor
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/quality/04_quality_silver_satellite
+            base_parameters:
+              config: ../../config/datavault.yml
+              satellite_name: satInvestidor
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_sat_investidor
+              severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: send_slack_alert_sat_investidor
+          depends_on:
+            - task_key: quality_silver_sat_investidor
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: /Workspace/Users/pradovalmur@gmail.com/Databricks_lab/notebooks/notifications/01_send_slack_data_quality_alert
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_sat_investidor
+              severity: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
       queue:
         enabled: true
 
