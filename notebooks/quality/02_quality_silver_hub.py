@@ -8,7 +8,7 @@ from pyspark.sql.types import StructType, StructField, StringType
 
 # COMMAND ----------
 
-dbutils.widgets.text("config", "../../config/datavault.yml")
+dbutils.widgets.text("config", "")
 dbutils.widgets.text("hub_name", "")
 dbutils.widgets.text("pipeline_name", "tesouro_direto_pipeline")
 dbutils.widgets.text("task_name", "quality_silver_hub")
@@ -38,7 +38,8 @@ audit_schema = f"{catalog}.audit"
 audit_table = f"{audit_schema}.dataQualityResults"
 
 print(f"Hub: {hub_name}")
-print(f"Table: {target_table}")
+print(f"Target table: {target_table}")
+print(f"Audit table: {audit_table}")
 print(f"Hash key: {hash_key}")
 print(f"Business keys: {business_keys}")
 
@@ -46,10 +47,16 @@ print(f"Business keys: {business_keys}")
 
 df = spark.table(target_table)
 existing_columns = set(df.columns)
-
 results = []
 
-def add_result(check_name, status, metric_value=None, threshold_value=None, message=None, severity="INFO"):
+def add_result(
+    check_name,
+    status,
+    metric_value=None,
+    threshold_value=None,
+    message=None,
+    severity="INFO"
+):
     results.append({
         "pipelineName": pipeline_name,
         "taskName": task_name,
@@ -73,12 +80,26 @@ row_count = df.count()
 if row_count > 0:
     add_result("min_rows", "PASSED", row_count, 1)
 else:
-    add_result("min_rows", "FAILED", row_count, 1, "Hub sem registros", severity_on_failure)
+    add_result(
+        "min_rows",
+        "FAILED",
+        row_count,
+        1,
+        "Hub sem registros",
+        severity_on_failure
+    )
 
 # COMMAND ----------
 
 if hash_key not in existing_columns:
-    add_result("hash_key_exists", "FAILED", hash_key, None, f"Hash key ausente: {hash_key}", severity_on_failure)
+    add_result(
+        "hash_key_exists",
+        "FAILED",
+        hash_key,
+        None,
+        f"Hash key ausente: {hash_key}",
+        severity_on_failure
+    )
 else:
     add_result("hash_key_exists", "PASSED", hash_key)
 
@@ -87,10 +108,18 @@ else:
     if null_count == 0:
         add_result("hash_key_not_null", "PASSED", 0, 0)
     else:
-        add_result("hash_key_not_null", "FAILED", null_count, 0, f"{hash_key} possui nulos", severity_on_failure)
+        add_result(
+            "hash_key_not_null",
+            "FAILED",
+            null_count,
+            0,
+            f"{hash_key} possui nulos",
+            severity_on_failure
+        )
 
     duplicate_count = (
-        df.groupBy(hash_key)
+        df
+        .groupBy(hash_key)
         .agg(count("*").alias("cnt"))
         .filter(col("cnt") > 1)
         .count()
@@ -99,21 +128,50 @@ else:
     if duplicate_count == 0:
         add_result("hash_key_unique", "PASSED", 0, 0)
     else:
-        add_result("hash_key_unique", "FAILED", duplicate_count, 0, f"{hash_key} possui duplicados", severity_on_failure)
+        add_result(
+            "hash_key_unique",
+            "FAILED",
+            duplicate_count,
+            0,
+            f"{hash_key} possui duplicados",
+            severity_on_failure
+        )
 
 # COMMAND ----------
 
-for bk in business_keys:
-    if bk not in existing_columns:
-        add_result("business_key_exists", "FAILED", bk, None, f"Business key ausente: {bk}", severity_on_failure)
+for business_key in business_keys:
+    if business_key not in existing_columns:
+        add_result(
+            "business_key_exists",
+            "FAILED",
+            business_key,
+            None,
+            f"Business key ausente: {business_key}",
+            severity_on_failure
+        )
         continue
 
-    null_count = df.filter(col(bk).isNull()).count()
+    add_result("business_key_exists", "PASSED", business_key)
+
+    null_count = df.filter(col(business_key).isNull()).count()
 
     if null_count == 0:
-        add_result("business_key_not_null", "PASSED", 0, 0, f"{bk} sem nulos")
+        add_result(
+            "business_key_not_null",
+            "PASSED",
+            0,
+            0,
+            f"{business_key} sem nulos"
+        )
     else:
-        add_result("business_key_not_null", "FAILED", null_count, 0, f"{bk} possui nulos", severity_on_failure)
+        add_result(
+            "business_key_not_null",
+            "FAILED",
+            null_count,
+            0,
+            f"{business_key} possui nulos",
+            severity_on_failure
+        )
 
 # COMMAND ----------
 
@@ -135,12 +193,27 @@ schema_results = StructType([
     StructField("runId", StringType(), True)
 ])
 
-df_results = spark.createDataFrame(results, schema=schema_results).withColumn("checkedAt", current_timestamp())
+df_results = spark.createDataFrame(results, schema=schema_results).withColumn(
+    "checkedAt",
+    current_timestamp()
+)
+
+# COMMAND ----------
 
 if spark.catalog.tableExists(audit_table):
-    df_results.write.format("delta").mode("append").insertInto(audit_table)
+    (
+        df_results.write
+        .format("delta")
+        .mode("append")
+        .insertInto(audit_table)
+    )
 else:
-    df_results.write.format("delta").mode("overwrite").saveAsTable(audit_table)
+    (
+        df_results.write
+        .format("delta")
+        .mode("overwrite")
+        .saveAsTable(audit_table)
+    )
 
 display(df_results)
 
