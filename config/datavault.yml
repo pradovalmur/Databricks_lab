@@ -39,6 +39,15 @@ satellites:
     hash_key: "hubInvestidorHk"
     parent_keys:
       - "codigoDoInvestidor"
+    attributes:
+      - "dataDeAdesao"
+      - "estadoCivil"
+      - "genero"
+      - "profissao"
+      - "uf"
+      - "cidade"
+      - "pais"
+      - "situacaoDaConta"
 
   satOperacao:
     source_table: "lakehouse_lab.bronze.operacoes"
@@ -48,6 +57,11 @@ satellites:
       - "codigoDoInvestidor"
       - "tipoTitulo"
       - "dataDaOperacao"
+    attributes:
+      - "dataDaOperacao"
+      - "quantidade"
+      - "valorDaOperacao"
+      - "tipoDaOperacao"
 
 gold:
   bridges:
@@ -101,31 +115,17 @@ quality:
 
   satellites:
     satInvestidor:
-      source_table: "lakehouse_lab.bronze.investidores"
-      target_table: "lakehouse_lab.silver.satInvestidor"
+      table: "lakehouse_lab.silver.satInvestidor"
       hash_key: "hubInvestidorHk"
-      parent_keys:
-        - "codigoDoInvestidor"
-      attributes:
-        - "dataDeAdesao"
-        - "estadoCivil"
-        - "genero"
-        - "profissao"
-        - "uf"
-        - "cidade"
-        - "pais"
-        - "situacaoDaConta"
+      required_columns:
+        - "hubInvestidorHk"
+        - "loadTs"
 
     satOperacao:
-      source_table: "lakehouse_lab.bronze.operacoes"
-      target_table: "lakehouse_lab.silver.satOperacao"
+      table: "lakehouse_lab.silver.satOperacao"
       hash_key: "linkInvestidorTituloOperacaoHk"
-      parent_keys:
-        - "codigoDoInvestidor"
-        - "tipoTitulo"
-        - "dataDaOperacao"
-      attributes:
-        - "dataDaOperacao"
-        - "quantidade"
+      required_columns:
+        - "linkInvestidorTituloOperacaoHk"
+        - "loadTs"
         - "valorDaOperacao"
-        - "tipoDaOperacao"
+        - "dataDaOperacao"
