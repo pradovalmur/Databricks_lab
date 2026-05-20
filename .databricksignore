@@ -1,0 +1,6 @@
+.github/
+.vscode/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
