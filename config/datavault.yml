@@ -101,17 +101,31 @@ quality:
 
   satellites:
     satInvestidor:
-      table: "lakehouse_lab.silver.satInvestidor"
+      source_table: "lakehouse_lab.bronze.investidores"
+      target_table: "lakehouse_lab.silver.satInvestidor"
       hash_key: "hubInvestidorHk"
-      required_columns:
-        - "hubInvestidorHk"
-        - "loadTs"
+      parent_keys:
+        - "codigoDoInvestidor"
+      attributes:
+        - "dataDeAdesao"
+        - "estadoCivil"
+        - "genero"
+        - "profissao"
+        - "uf"
+        - "cidade"
+        - "pais"
+        - "situacaoDaConta"
 
     satOperacao:
-      table: "lakehouse_lab.silver.satOperacao"
+      source_table: "lakehouse_lab.bronze.operacoes"
+      target_table: "lakehouse_lab.silver.satOperacao"
       hash_key: "linkInvestidorTituloOperacaoHk"
-      required_columns:
-        - "linkInvestidorTituloOperacaoHk"
-        - "loadTs"
-        - "valorDaOperacao"
+      parent_keys:
+        - "codigoDoInvestidor"
+        - "tipoTitulo"
         - "dataDaOperacao"
+      attributes:
+        - "dataDaOperacao"
+        - "quantidade"
+        - "valorDaOperacao"
+        - "tipoDaOperacao"
