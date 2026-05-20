@@ -23,10 +23,25 @@ satellite_name = dbutils.widgets.get("satellite_name")
 
 def load_yaml_config(config_arg: str) -> dict:
     config_path = (Path.cwd() / config_arg).resolve()
+
     print(f"Config path resolvido: {config_path}")
 
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
+
+
+def select_unique_columns_case_insensitive(df):
+    seen = set()
+    selected_columns = []
+
+    for column_name in df.columns:
+        normalized_name = column_name.lower()
+
+        if normalized_name not in seen:
+            seen.add(normalized_name)
+            selected_columns.append(column_name)
+
+    return df.select(*[col(c) for c in selected_columns])
 
 # COMMAND ----------
 
@@ -49,12 +64,15 @@ print(f"Hash key: {hash_key}")
 
 df = spark.table(source_table)
 
-# remove colunas duplicadas por nome, se existirem
-df = df.select(*[col(c) for c in dict.fromkeys(df.columns)])
+df = select_unique_columns_case_insensitive(df)
 
-# remove hash key se ela já existir no source
-if hash_key in df.columns:
-    df = df.drop(hash_key)
+# Remove qualquer coluna com mesmo nome da hash key, ignorando maiúscula/minúscula
+columns_without_hash_key = [
+    c for c in df.columns
+    if c.lower() != hash_key.lower()
+]
+
+df = df.select(*[col(c) for c in columns_without_hash_key])
 
 # COMMAND ----------
 
@@ -79,12 +97,21 @@ else:
     ] + [
         c for c in df_sat.columns
         if c not in parent_keys
-        and c != hash_key
+        and c.lower() != hash_key.lower()
     ]
 
-columns_to_select = list(dict.fromkeys(columns_to_select))
+# Deduplica seleção final ignorando maiúscula/minúscula
+final_columns = []
+seen = set()
 
-df_sat = df_sat.select(*[col(c) for c in columns_to_select])
+for c in columns_to_select:
+    normalized = c.lower()
+
+    if normalized not in seen:
+        seen.add(normalized)
+        final_columns.append(c)
+
+df_sat = df_sat.select(*[col(c) for c in final_columns])
 
 # COMMAND ----------
 
@@ -94,6 +121,8 @@ df_sat = (
     .withColumn("loadTs", current_timestamp())
     .withColumn("loadDate", current_date())
 )
+
+df_sat = select_unique_columns_case_insensitive(df_sat)
 
 display(df_sat.limit(10))
 
