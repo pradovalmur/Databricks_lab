@@ -40,7 +40,7 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/bronze/01_bronze_from_raw_csv.py
             base_parameters:
-              config: config/sources.yml
+              config: ../../config/sources.yml
               source: tesouro_direto_operacoes_2025
             source: WORKSPACE
           environment_key: Default
@@ -51,7 +51,7 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/bronze/01_bronze_from_raw_csv.py
             base_parameters:
-              config: config/sources.yml
+              config: ../../config/sources.yml
               source: tesouro_direto_investidores_2025
             source: WORKSPACE
           environment_key: Default
@@ -62,11 +62,26 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/quality/01_quality_bronze.py
             base_parameters:
-              config: config/sources.yml
+              config: ../../config/sources.yml
               source: tesouro_direto_operacoes_2025
               pipeline_name: tesouro_direto_pipeline
               task_name: quality_bronze_operacoes
               severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: send_slack_alert_operacoes
+          depends_on:
+            - task_key: quality_bronze_operacoes
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../notebooks/notifications/01_send_slack_data_quality_alert.py
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_bronze_operacoes
+              severity: ERROR
             source: WORKSPACE
           environment_key: Default
 
@@ -76,11 +91,26 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/quality/01_quality_bronze.py
             base_parameters:
-              config: config/sources.yml
+              config: ../../config/sources.yml
               source: tesouro_direto_investidores_2025
               pipeline_name: tesouro_direto_pipeline
               task_name: quality_bronze_investidores
               severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: send_slack_alert_investidores
+          depends_on:
+            - task_key: quality_bronze_investidores
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../notebooks/notifications/01_send_slack_data_quality_alert.py
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_bronze_investidores
+              severity: ERROR
             source: WORKSPACE
           environment_key: Default
 
@@ -90,19 +120,8 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/silver/datavault/01_hub.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../../config/datavault.yml
               hub_name: hubTitulo
-            source: WORKSPACE
-          environment_key: Default
-
-        - task_key: hub_investidor
-          depends_on:
-            - task_key: quality_bronze_investidores
-          notebook_task:
-            notebook_path: ../notebooks/silver/datavault/01_hub.py
-            base_parameters:
-              config: config/datavault.yml
-              hub_name: hubInvestidor
             source: WORKSPACE
           environment_key: Default
 
@@ -112,11 +131,37 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/quality/02_quality_silver_hub.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../config/datavault.yml
               hub_name: hubTitulo
               pipeline_name: tesouro_direto_pipeline
               task_name: quality_silver_hub_titulo
               severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: send_slack_alert_hub_titulo
+          depends_on:
+            - task_key: quality_silver_hub_titulo
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../notebooks/notifications/01_send_slack_data_quality_alert.py
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_hub_titulo
+              severity: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: hub_investidor
+          depends_on:
+            - task_key: quality_bronze_investidores
+          notebook_task:
+            notebook_path: ../notebooks/silver/datavault/01_hub.py
+            base_parameters:
+              config: ../../../config/datavault.yml
+              hub_name: hubInvestidor
             source: WORKSPACE
           environment_key: Default
 
@@ -126,11 +171,26 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/quality/02_quality_silver_hub.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../config/datavault.yml
               hub_name: hubInvestidor
               pipeline_name: tesouro_direto_pipeline
               task_name: quality_silver_hub_investidor
               severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: send_slack_alert_hub_investidor
+          depends_on:
+            - task_key: quality_silver_hub_investidor
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../notebooks/notifications/01_send_slack_data_quality_alert.py
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_hub_investidor
+              severity: ERROR
             source: WORKSPACE
           environment_key: Default
 
@@ -141,7 +201,7 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/silver/datavault/02_link.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../../config/datavault.yml
               link_name: linkInvestidorTituloOperacao
             source: WORKSPACE
           environment_key: Default
@@ -152,11 +212,26 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/quality/03_quality_silver_link.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../config/datavault.yml
               link_name: linkInvestidorTituloOperacao
               pipeline_name: tesouro_direto_pipeline
               task_name: quality_silver_link_operacao
               severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: send_slack_alert_link_operacao
+          depends_on:
+            - task_key: quality_silver_link_operacao
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../notebooks/notifications/01_send_slack_data_quality_alert.py
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_link_operacao
+              severity: ERROR
             source: WORKSPACE
           environment_key: Default
 
@@ -166,19 +241,8 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/silver/datavault/03_satellite.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../../config/datavault.yml
               satellite_name: satOperacao
-            source: WORKSPACE
-          environment_key: Default
-
-        - task_key: sat_investidor
-          depends_on:
-            - task_key: quality_silver_hub_investidor
-          notebook_task:
-            notebook_path: ../notebooks/silver/datavault/03_satellite.py
-            base_parameters:
-              config: config/datavault.yml
-              satellite_name: satInvestidor
             source: WORKSPACE
           environment_key: Default
 
@@ -188,11 +252,37 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/quality/04_quality_silver_satellite.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../config/datavault.yml
               satellite_name: satOperacao
               pipeline_name: tesouro_direto_pipeline
               task_name: quality_silver_sat_operacao
               severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: send_slack_alert_sat_operacao
+          depends_on:
+            - task_key: quality_silver_sat_operacao
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../notebooks/notifications/01_send_slack_data_quality_alert.py
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_sat_operacao
+              severity: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: sat_investidor
+          depends_on:
+            - task_key: quality_silver_hub_investidor
+          notebook_task:
+            notebook_path: ../notebooks/silver/datavault/03_satellite.py
+            base_parameters:
+              config: ../../../config/datavault.yml
+              satellite_name: satInvestidor
             source: WORKSPACE
           environment_key: Default
 
@@ -202,11 +292,26 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/quality/04_quality_silver_satellite.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../config/datavault.yml
               satellite_name: satInvestidor
               pipeline_name: tesouro_direto_pipeline
               task_name: quality_silver_sat_investidor
               severity_on_failure: ERROR
+            source: WORKSPACE
+          environment_key: Default
+
+        - task_key: send_slack_alert_sat_investidor
+          depends_on:
+            - task_key: quality_silver_sat_investidor
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../notebooks/notifications/01_send_slack_data_quality_alert.py
+            base_parameters:
+              alerts_config: ../../config/alerts.yml
+              catalog: lakehouse_lab
+              pipeline_name: tesouro_direto_pipeline
+              task_name: quality_silver_sat_investidor
+              severity: ERROR
             source: WORKSPACE
           environment_key: Default
 
@@ -217,7 +322,7 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/gold/bridge/01_bridge.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../../config/datavault.yml
               bridge_name: bridgeInvestidorTitulo
             source: WORKSPACE
           environment_key: Default
@@ -228,7 +333,7 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/gold/pit/01_pit.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../../config/datavault.yml
               pit_name: pitInvestidor
             source: WORKSPACE
           environment_key: Default
@@ -239,7 +344,7 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/gold/marts/01_mart_resumo_titulo.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../../config/datavault.yml
               mart_name: martResumoTitulo
             source: WORKSPACE
           environment_key: Default
@@ -250,7 +355,7 @@ resources:
           notebook_task:
             notebook_path: ../notebooks/gold/marts/02_mart_perfil_investidor.py
             base_parameters:
-              config: config/datavault.yml
+              config: ../../../config/datavault.yml
               mart_name: martPerfilInvestidor
             source: WORKSPACE
           environment_key: Default
