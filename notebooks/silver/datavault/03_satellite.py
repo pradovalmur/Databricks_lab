@@ -23,7 +23,6 @@ satellite_name = dbutils.widgets.get("satellite_name")
 
 def load_yaml_config(config_arg: str) -> dict:
     config_path = (Path.cwd() / config_arg).resolve()
-
     print(f"Config path resolvido: {config_path}")
 
     with open(config_path, "r") as f:
@@ -41,24 +40,32 @@ hash_key = sat_config["hash_key"]
 parent_keys = sat_config["parent_keys"]
 attributes = sat_config.get("attributes", [])
 
+print(f"Satellite: {satellite_name}")
+print(f"Source table: {source_table}")
+print(f"Target table: {target_table}")
+print(f"Hash key: {hash_key}")
+
 # COMMAND ----------
 
 df = spark.table(source_table)
 
+# remove colunas duplicadas por nome, se existirem
+df = df.select(*[col(c) for c in dict.fromkeys(df.columns)])
+
+# remove hash key se ela já existir no source
+if hash_key in df.columns:
+    df = df.drop(hash_key)
+
 # COMMAND ----------
 
-df_sat = (
-    df
-    .drop(hash_key)
-    .withColumn(
-        hash_key,
-        sha2(
-            concat_ws(
-                "||",
-                *[col(c).cast("string") for c in parent_keys]
-            ),
-            256
-        )
+df_sat = df.withColumn(
+    hash_key,
+    sha2(
+        concat_ws(
+            "||",
+            *[col(c).cast("string") for c in parent_keys]
+        ),
+        256
     )
 )
 
@@ -77,11 +84,12 @@ else:
 
 columns_to_select = list(dict.fromkeys(columns_to_select))
 
+df_sat = df_sat.select(*[col(c) for c in columns_to_select])
+
 # COMMAND ----------
 
 df_sat = (
     df_sat
-    .select(*columns_to_select)
     .dropDuplicates()
     .withColumn("loadTs", current_timestamp())
     .withColumn("loadDate", current_date())
