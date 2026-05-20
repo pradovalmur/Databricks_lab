@@ -37,12 +37,15 @@ sat_config = config["satellites"][satellite_name]
 
 source_table = sat_config["source_table"]
 target_table = sat_config["target_table"]
-
 hash_key = sat_config["hash_key"]
-
 parent_keys = sat_config["parent_keys"]
-
 attributes = sat_config.get("attributes", [])
+
+print(f"Satellite: {satellite_name}")
+print(f"Source table: {source_table}")
+print(f"Target table: {target_table}")
+print(f"Hash key: {hash_key}")
+print(f"Parent keys: {parent_keys}")
 
 # COMMAND ----------
 
@@ -50,19 +53,23 @@ df = spark.table(source_table)
 
 # COMMAND ----------
 
-df_sat = (
-    df
-    .withColumn(
-        hash_key,
-        sha2(
-            concat_ws(
-                "||",
-                *[col(c).cast("string") for c in parent_keys]
-            ),
-            256
+if hash_key in df.columns:
+    print(f"Hash key já existe no source. Reutilizando: {hash_key}")
+    df_sat = df
+else:
+    df_sat = (
+        df
+        .withColumn(
+            hash_key,
+            sha2(
+                concat_ws(
+                    "||",
+                    *[col(c).cast("string") for c in parent_keys]
+                ),
+                256
+            )
         )
     )
-)
 
 # COMMAND ----------
 
@@ -72,8 +79,13 @@ if attributes:
     columns_to_select.extend(attributes)
 else:
     columns_to_select.extend(
-        [c for c in df_sat.columns if c not in parent_keys]
+        [
+            c for c in df_sat.columns
+            if c not in parent_keys and c != hash_key
+        ]
     )
+
+columns_to_select = list(dict.fromkeys(columns_to_select))
 
 # COMMAND ----------
 
