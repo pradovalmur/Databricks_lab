@@ -4,7 +4,6 @@ resources:
       name: Tesouro_ingestion
 
       tasks:
-
         - task_key: setup_unity_catalog
           notebook_task:
             notebook_path: ../setup/00_setup_unity_catalog.py
@@ -18,7 +17,7 @@ resources:
             python_file: ../ingestions/download_csv.py
             parameters:
               - --config
-              - config/sources.yml
+              - ../config/sources.yml
               - --source
               - tesouro_direto_operacoes_2025
           environment_key: Default
@@ -30,7 +29,7 @@ resources:
             python_file: ../ingestions/download_csv.py
             parameters:
               - --config
-              - config/sources.yml
+              - ../config/sources.yml
               - --source
               - tesouro_direto_investidores_2025
           environment_key: Default
@@ -82,36 +81,6 @@ resources:
               pipeline_name: tesouro_direto_pipeline
               task_name: quality_bronze_investidores
               severity_on_failure: ERROR
-            source: WORKSPACE
-          environment_key: Default
-
-        - task_key: send_slack_alert_operacoes
-          depends_on:
-            - task_key: quality_bronze_operacoes
-          run_if: AT_LEAST_ONE_FAILED
-          notebook_task:
-            notebook_path: ../notebooks/notifications/01_send_slack_data_quality_alert.py
-            base_parameters:
-              alerts_config: config/alerts.yml
-              catalog: lakehouse_lab
-              pipeline_name: tesouro_direto_pipeline
-              task_name: quality_bronze_operacoes
-              severity: ERROR
-            source: WORKSPACE
-          environment_key: Default
-
-        - task_key: send_slack_alert_investidores
-          depends_on:
-            - task_key: quality_bronze_investidores
-          run_if: AT_LEAST_ONE_FAILED
-          notebook_task:
-            notebook_path: ../notebooks/notifications/01_send_slack_data_quality_alert.py
-            base_parameters:
-              alerts_config: config/alerts.yml
-              catalog: lakehouse_lab
-              pipeline_name: tesouro_direto_pipeline
-              task_name: quality_bronze_investidores
-              severity: ERROR
             source: WORKSPACE
           environment_key: Default
 
