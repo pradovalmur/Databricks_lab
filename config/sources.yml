@@ -14,7 +14,7 @@ sources:
 
     data_quality:
       bronze:
-        min_rows: 999999999
+        min_rows: 100000
         required_columns:
           - codigoDoInvestidor
           - dataDaOperacao
@@ -45,7 +45,7 @@ sources:
 
     data_quality:
       bronze:
-        min_rows: 999999999
+        min_rows: 100000
         required_columns:
           - codigoDoInvestidor
         not_null:
