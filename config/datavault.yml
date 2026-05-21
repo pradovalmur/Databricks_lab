@@ -44,10 +44,12 @@ satellites:
       - "estadoCivil"
       - "genero"
       - "profissao"
-      - "uf"
-      - "cidade"
-      - "pais"
+      - "idade"
+      - "ufDoInvestidor"
+      - "cidadeDoInvestidor"
+      - "paisDoInvestidor"
       - "situacaoDaConta"
+      - "operou12Meses"
 
   satOperacao:
     source_table: "lakehouse_lab.bronze.operacoes"
