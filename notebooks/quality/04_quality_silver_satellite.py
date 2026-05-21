@@ -44,6 +44,10 @@ catalog = target_table.split(".")[0]
 audit_schema = f"{catalog}.audit"
 audit_table = f"{audit_schema}.dataQualityResults"
 
+print(f"Satellite: {satellite_name}")
+print(f"Target table: {target_table}")
+print(f"Audit table: {audit_table}")
+
 # COMMAND ----------
 
 df = spark.table(target_table)
@@ -126,7 +130,12 @@ schema_results = StructType([
     StructField("runId", StringType(), True)
 ])
 
-df_results = spark.createDataFrame(results, schema=schema_results).withColumn("checkedAt", current_timestamp())
+df_results = spark.createDataFrame(results, schema=schema_results).withColumn(
+    "checkedAt",
+    current_timestamp()
+)
+
+# COMMAND ----------
 
 if spark.catalog.tableExists(audit_table):
     df_results.write.format("delta").mode("append").insertInto(audit_table)
