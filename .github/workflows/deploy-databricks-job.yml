@@ -8,6 +8,7 @@ on:
     paths:
       - "databricks.yml"
       - "resources/**"
+      - "dbt/**"
       - ".github/workflows/deploy-databricks-job.yml"
 
 jobs:
@@ -15,18 +16,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: databricks/setup-cli@main
+      - name: Setup Databricks CLI
+        uses: databricks/setup-cli@v1
 
       - name: Validate bundle
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-        run: databricks bundle validate -t dev
+        run: |
+          databricks bundle validate -t dev
 
       - name: Deploy bundle
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-        run: databricks bundle deploy -t dev
+        run: |
+          databricks bundle deploy -t dev
