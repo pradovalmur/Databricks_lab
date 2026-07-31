@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: silver
+    catalog: lakehouse_lab
+    schema: silver
+
+    tables:
+      - name: hubInvestidor
+      - name: hubTitulo
+      - name: linkInvestidorTitulo
+      - name: satInvestidor
+      - name: satTitulo
+      - name: satOperacao
