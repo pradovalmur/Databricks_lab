@@ -3,10 +3,10 @@ version: 2
 models:
   - name: pit_investidor
     description: >
-      Point-In-Time (PIT) da entidade Investidor. Este modelo combina o
-      Hub de Investidor com o registro mais recente da Satellite,
-      disponibilizando uma visão atualizada da entidade para consumo pela
-      camada Gold e pelos Data Marts.
+      Point-In-Time (PIT) da entidade Investidor. Consolida o Hub de
+      Investidor com o registro mais recente da Satellite, disponibilizando
+      uma visão atual da entidade para consumo pelos modelos analíticos da
+      camada Gold.
 
     columns:
       - name: hubInvestidorHk
@@ -18,6 +18,42 @@ models:
         description: Chave de negócio do Investidor.
         tests:
           - not_null
+
+      - name: dataDeAdesao
+        description: Data de adesão do investidor.
+
+      - name: estadoCivil
+        description: Estado civil do investidor.
+
+      - name: genero
+        description: Gênero informado pelo investidor.
+
+      - name: profissao
+        description: Profissão do investidor.
+
+      - name: idade
+        description: Idade do investidor.
+
+      - name: ufDoInvestidor
+        description: Unidade Federativa (UF) do investidor.
+
+      - name: cidadeDoInvestidor
+        description: Cidade do investidor.
+
+      - name: paisDoInvestidor
+        description: País do investidor.
+
+      - name: situacaoDaConta
+        description: Situação atual da conta do investidor.
+
+      - name: operou12Meses
+        description: Indica se o investidor realizou operações nos últimos 12 meses.
+
+      - name: loadTs
+        description: Timestamp da carga do registro da Satellite.
+
+      - name: loadDate
+        description: Data da carga do registro da Satellite.
 
       - name: pitLoadTs
         description: Timestamp da execução da carga da PIT.
