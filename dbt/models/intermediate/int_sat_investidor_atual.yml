@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: int_sat_investidor_atual
+    description: >
+      Modelo intermediário responsável por identificar o registro mais
+      recente da Satellite de Investidor. Este modelo utiliza uma função
+      de janela para selecionar a última versão de cada investidor com base
+      no timestamp de carga, servindo como fonte para a construção da
+      Point-In-Time (PIT) da camada Gold.
+
+    columns:
+      - name: hubInvestidorHk
+        description: Hash Key do Investidor.
+
+      - name: loadTs
+        description: Timestamp de carga do registro mais recente.
+
+      - name: rn
+        description: >
+          Número sequencial utilizado internamente para identificar o
+          registro mais recente da Satellite. Não é propagado para os
+          modelos consumidores.
