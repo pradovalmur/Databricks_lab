@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: bridge_investidor_titulo
+    description: >
+      Bridge que consolida as operações entre investidores e títulos,
+      permitindo análises agregadas sobre frequência e volume de operações.
+
+    columns:
+
+      - name: hubInvestidorHk
+        description: Hash Key do Investidor.
+        tests:
+          - not_null
+
+      - name: hubTituloHk
+        description: Hash Key do Título.
+        tests:
+          - not_null
+
+      - name: totalOperacoes
+        description: Quantidade total de operações.
+
+      - name: valorTotalOperado
+        description: Soma dos valores das operações.

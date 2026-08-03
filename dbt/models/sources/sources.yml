@@ -9,6 +9,7 @@ sources:
       - name: hubInvestidor
       - name: hubTitulo
       - name: linkInvestidorTitulo
+      - name: linkInvestidorTituloOperacao
       - name: satInvestidor
       - name: satTitulo
       - name: satOperacao
