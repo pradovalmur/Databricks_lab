@@ -2,14 +2,95 @@ version: 2
 
 sources:
   - name: silver
-    catalog: lakehouse_lab
+    description: >
+      Camada Silver do Lakehouse baseada na modelagem Data Vault.
+      Contém as entidades de negócio (Hubs), relacionamentos (Links)
+      e atributos históricos (Satellites), servindo como fonte para
+      a construção das Bridge Tables, PITs e Data Marts da camada Gold.
+
+    database: lakehouse_lab
     schema: silver
 
     tables:
+
       - name: hubInvestidor
+        description: >
+          Hub que representa a entidade de negócio Investidor.
+          Armazena a Hash Key e a chave de negócio do investidor.
+
+        columns:
+          - name: hubInvestidorHk
+            description: Hash Key única do Investidor.
+
+          - name: codigoDoInvestidor
+            description: Chave de negócio do investidor.
+
+          - name: _loadTs
+            description: Timestamp de carga do registro.
+
+          - name: _recordSource
+            description: Origem do registro.
+
       - name: hubTitulo
-      - name: linkInvestidorTitulo
+        description: >
+          Hub que representa a entidade de negócio Título.
+          Contém a Hash Key e a chave de negócio do título.
+
+        columns:
+          - name: hubTituloHk
+            description: Hash Key única do Título.
+
+          - name: tipoTitulo
+            description: Tipo do título.
+
+          - name: _loadTs
+            description: Timestamp de carga do registro.
+
+          - name: _recordSource
+            description: Origem do registro.
+
       - name: linkInvestidorTituloOperacao
-      - name: satInvestidor
-      - name: satTitulo
+        description: >
+          Link responsável por relacionar Investidor, Título e Operação,
+          preservando a granularidade transacional do Data Vault.
+
+        columns:
+          - name: linkInvestidorTituloOperacaoHk
+            description: Hash Key do relacionamento entre Investidor, Título e Operação.
+
+          - name: hubInvestidorHk
+            description: Referência ao Hub de Investidor.
+
+          - name: hubTituloHk
+            description: Referência ao Hub de Título.
+
+          - name: _loadTs
+            description: Timestamp de carga do relacionamento.
+
+          - name: _recordSource
+            description: Origem do registro.
+
       - name: satOperacao
+        description: >
+          Satellite associada ao Link Investidor-Título-Operação.
+          Contém os atributos descritivos e históricos das operações
+          financeiras realizadas.
+
+        columns:
+          - name: linkInvestidorTituloOperacaoHk
+            description: Hash Key do relacionamento.
+
+          - name: dataDaOperacao
+            description: Data da operação.
+
+          - name: valorDaOperacao
+            description: Valor financeiro da operação.
+
+          - name: tipoDaOperacao
+            description: Tipo da operação realizada.
+
+          - name: _loadTs
+            description: Timestamp de carga do registro.
+
+          - name: _recordSource
+            description: Origem do registro.
