@@ -66,24 +66,6 @@ satellites:
       - "tipoDaOperacao"
 
 gold:
-  bridges:
-    bridgeInvestidorTitulo:
-      target_table: "lakehouse_lab.gold.bridgeInvestidorTitulo"
-      source_link: "lakehouse_lab.silver.linkInvestidorTituloOperacao"
-      source_hubs:
-        investidor: "lakehouse_lab.silver.hubInvestidor"
-        titulo: "lakehouse_lab.silver.hubTitulo"
-      source_satellites:
-        operacao: "lakehouse_lab.silver.satOperacao"
-
-  pits:
-    pitInvestidor:
-      target_table: "lakehouse_lab.gold.pitInvestidor"
-      source_hub: "lakehouse_lab.silver.hubInvestidor"
-      source_satellite: "lakehouse_lab.silver.satInvestidor"
-      hash_key: "hubInvestidorHk"
-      business_key: "codigoDoInvestidor"
-
   marts:
     martResumoTitulo:
       source_table: "lakehouse_lab.gold.bridgeInvestidorTitulo"
