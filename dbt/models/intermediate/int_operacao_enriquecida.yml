@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: int_operacao_enriquecida
+    description: >
+      Modelo intermediário que consolida as informações do Link, Hubs e
+      Satellite da camada Silver em um único conjunto de dados enriquecido.
+      Este modelo serve como base para a construção das Bridge Tables e
+      demais modelos analíticos da camada Gold.
+
+    columns:
+      - name: linkInvestidorTituloOperacaoHk
+        description: Hash Key da relação entre Investidor, Título e Operação.
+
+      - name: hubInvestidorHk
+        description: Hash Key do Hub de Investidor.
+
+      - name: hubTituloHk
+        description: Hash Key do Hub de Título.
+
+      - name: codigoDoInvestidor
+        description: Código de identificação do investidor.
+
+      - name: tipoTitulo
+        description: Tipo do título negociado.
+
+      - name: dataDaOperacao
+        description: Data da operação.
+
+      - name: valorDaOperacao
+        description: Valor monetário da operação.
+
+      - name: tipoDaOperacao
+        description: Tipo da operação realizada.

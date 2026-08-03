@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: int_sat_operacao
+    description: >
+      Modelo intermediário responsável por padronizar os dados da Satellite
+      de Operações proveniente da camada Silver. Nesta etapa são aplicadas
+      transformações de tipos de dados e normalizações necessárias para
+      consumo pelos modelos da camada Gold.
+
+    columns:
+      - name: linkInvestidorTituloOperacaoHk
+        description: Hash Key da relação entre Investidor, Título e Operação.
+
+      - name: dataDaOperacao
+        description: Data em que a operação foi realizada.
+
+      - name: valorDaOperacao
+        description: Valor da operação convertido para o tipo DOUBLE.
+
+      - name: tipoDaOperacao
+        description: Tipo da operação realizada pelo investidor.

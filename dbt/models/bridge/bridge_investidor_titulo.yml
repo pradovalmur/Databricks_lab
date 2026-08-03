@@ -3,11 +3,13 @@ version: 2
 models:
   - name: bridge_investidor_titulo
     description: >
-      Bridge que consolida as operações entre investidores e títulos,
-      permitindo análises agregadas sobre frequência e volume de operações.
+      Bridge Table da camada Gold responsável por consolidar indicadores
+      analíticos das operações entre investidores e títulos. O modelo
+      agrega os dados do Data Vault (Hub, Link e Satellite), permitindo
+      consultas analíticas sem necessidade de múltiplos JOINs sobre a
+      camada Silver.
 
     columns:
-
       - name: hubInvestidorHk
         description: Hash Key do Investidor.
         tests:
@@ -18,8 +20,29 @@ models:
         tests:
           - not_null
 
+      - name: codigoDoInvestidor
+        description: Código do investidor.
+
+      - name: tipoTitulo
+        description: Tipo do título.
+
       - name: totalOperacoes
-        description: Quantidade total de operações.
+        description: Quantidade total de operações realizadas entre o investidor e o título.
+
+      - name: totalDiasOperados
+        description: Quantidade de dias distintos em que ocorreram operações.
 
       - name: valorTotalOperado
-        description: Soma dos valores das operações.
+        description: Soma do valor financeiro de todas as operações.
+
+      - name: primeiraOperacao
+        description: Data da primeira operação registrada.
+
+      - name: ultimaOperacao
+        description: Data da última operação registrada.
+
+      - name: bridgeLoadTs
+        description: Timestamp da carga da Bridge Table.
+
+      - name: bridgeLoadDate
+        description: Data da carga da Bridge Table.
