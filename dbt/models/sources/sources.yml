@@ -94,3 +94,20 @@ sources:
 
           - name: _recordSource
             description: Origem do registro.
+
+      - name: satInvestidor
+        description: >
+          Satellite da entidade Investidor. Armazena os atributos
+          descritivos e históricos do investidor, preservando todas
+          as alterações ao longo do tempo conforme os princípios do
+          Data Vault.
+
+        columns:
+          - name: hubInvestidorHk
+            description: Hash Key do Investidor.
+
+          - name: loadTs
+            description: Timestamp da carga do registro.
+
+          - name: recordSource
+            description: Origem do registro.
