@@ -315,49 +315,21 @@ resources:
             source: WORKSPACE
           environment_key: Default
 
-        - task_key: bridge_investidor_titulo
+        - task_key: dbt_gold
           depends_on:
             - task_key: quality_silver_link_operacao
             - task_key: quality_silver_sat_operacao
-          notebook_task:
-            notebook_path: ../notebooks/gold/bridge/01_bridge.py
-            base_parameters:
-              config: ../../../config/datavault.yml
-              bridge_name: bridgeInvestidorTitulo
-            source: WORKSPACE
-          environment_key: Default
-
-        - task_key: pit_investidor
-          depends_on:
             - task_key: quality_silver_sat_investidor
-          notebook_task:
-            notebook_path: ../notebooks/gold/pit/01_pit.py
-            base_parameters:
-              config: ../../../config/datavault.yml
-              pit_name: pitInvestidor
-            source: WORKSPACE
-          environment_key: Default
 
-        - task_key: mart_resumo_titulo
-          depends_on:
-            - task_key: bridge_investidor_titulo
-          notebook_task:
-            notebook_path: ../notebooks/gold/marts/01_mart_resumo_titulo.py
-            base_parameters:
-              config: ../../../config/datavault.yml
-              mart_name: martResumoTitulo
-            source: WORKSPACE
-          environment_key: Default
+          dbt_task:
+            project_directory: ../dbt
 
-        - task_key: mart_perfil_investidor
-          depends_on:
-            - task_key: pit_investidor
-          notebook_task:
-            notebook_path: ../notebooks/gold/marts/02_mart_perfil_investidor.py
-            base_parameters:
-              config: ../../../config/datavault.yml
-              mart_name: martPerfilInvestidor
+            commands:
+              - "dbt deps"
+              - "dbt build --fail-fast"
+
             source: WORKSPACE
+
           environment_key: Default
 
       queue:

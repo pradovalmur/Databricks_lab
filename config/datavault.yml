@@ -65,16 +65,6 @@ satellites:
       - "valorDaOperacao"
       - "tipoDaOperacao"
 
-gold:
-  marts:
-    martResumoTitulo:
-      source_table: "lakehouse_lab.gold.bridgeInvestidorTitulo"
-      target_table: "lakehouse_lab.gold.martResumoTitulo"
-
-    martPerfilInvestidor:
-      source_table: "lakehouse_lab.gold.pitInvestidor"
-      target_table: "lakehouse_lab.gold.martPerfilInvestidor"
-
 quality:
   hubs:
     hubInvestidor:
