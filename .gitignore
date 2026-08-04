@@ -4,6 +4,7 @@
 
 # Databricks
 .databricks/
+logs/
 
 # Python
 .venv/

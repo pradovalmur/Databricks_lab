@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: int_operacao_enriquecida
+  - name: int_operacoes_enriquecida
     description: >
       Modelo intermediário que consolida as informações do Link, Hubs e
       Satellite da camada Silver em um único conjunto de dados enriquecido.
