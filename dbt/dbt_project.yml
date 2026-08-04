@@ -17,17 +17,22 @@ clean-targets:
 models:
   tesouro_dbt:
 
+    intermediate:
+      +materialized: view
+
     bridge:
       +materialized: table
-      +tags:
-        - bridge
 
     pit:
       +materialized: table
-      +tags:
-        - pit
 
-    marts:
+    dimensional:
+
+      dimensions:
+        +materialized: table
+
+      facts:
+        +materialized: table
+
+    presentation:
       +materialized: table
-      +tags:
-        - gold

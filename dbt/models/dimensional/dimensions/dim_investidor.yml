@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: dim_investidor
+    description: >
+      Dimensão de Investidor construída a partir da PIT de Investidor.
+      Representa o estado mais recente conhecido de cada investidor para
+      utilização em modelos analíticos.
+
+    columns:
+
+      - name: investidorKey
+        description: Chave técnica da dimensão derivada da Hash Key do Data Vault.
+        tests:
+          - not_null
+          - unique
+
+      - name: codigoDoInvestidor
+        description: Código de negócio do investidor.
+        tests:
+          - not_null
+
+      - name: dataDeAdesao
+        description: Data de adesão do investidor.
+
+      - name: estadoCivil
+        description: Estado civil do investidor.
+
+      - name: genero
+        description: Gênero informado pelo investidor.
+
+      - name: profissao
+        description: Profissão do investidor.
+
+      - name: idade
+        description: Idade do investidor.
+
+      - name: ufDoInvestidor
+        description: Unidade Federativa do investidor.
+
+      - name: cidadeDoInvestidor
+        description: Cidade do investidor.
+
+      - name: paisDoInvestidor
+        description: País do investidor.
+
+      - name: situacaoDaConta
+        description: Situação atual da conta do investidor.
+
+      - name: operou12Meses
+        description: Indica se o investidor realizou operações nos últimos 12 meses.
+
+      - name: pitLoadTs
+        description: Timestamp da geração da PIT.
+
+      - name: pitLoadDate
+        description: Data da geração da PIT.
