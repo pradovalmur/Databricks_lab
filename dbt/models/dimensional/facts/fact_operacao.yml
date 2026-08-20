@@ -1,0 +1,49 @@
+version: 2
+
+models:
+  - name: fact_operacao
+    description: >
+      Tabela fato da camada dimensional que representa as operações
+      agregadas entre investidores e títulos. É construída a partir da
+      Bridge Investidor-Título e serve como fonte para os modelos da
+      camada de apresentação.
+
+    columns:
+      - name: investidorKey
+        description: Chave da dimensão Investidor.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_investidor')
+                field: investidorKey
+
+      - name: tituloKey
+        description: Chave da dimensão Título.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_titulo')
+                field: tituloKey
+
+      - name: totalOperacoes
+        description: Quantidade total de operações entre o investidor e o título.
+
+      - name: totalDiasOperados
+        description: Quantidade de dias distintos em que ocorreram operações.
+
+      - name: valorTotalOperado
+        description: Valor financeiro total das operações.
+
+      - name: primeiraOperacao
+        description: Data da primeira operação registrada.
+
+      - name: ultimaOperacao
+        description: Data da última operação registrada.
+
+      - name: factLoadTs
+        description: Timestamp de geração da tabela fato.
+
+      - name: factLoadDate
+        description: Data de geração da tabela fato.

@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: dim_titulo
+    description: >
+      Dimensão de Título utilizada pela camada dimensional da Gold.
+      Representa os títulos disponíveis para análise e desacopla os
+      modelos analíticos da estrutura física do Data Vault.
+
+    columns:
+      - name: tituloKey
+        description: Chave técnica da dimensão derivada da Hash Key do Hub de Título.
+        tests:
+          - not_null
+          - unique
+
+      - name: tipoTitulo
+        description: Tipo do título.
+        tests:
+          - not_null
